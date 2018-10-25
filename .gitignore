@@ -27,6 +27,16 @@
 *.lib
 
 # Executables
+main
 *.exe
 *.out
 *.app
+
+# Apple Desktop Services Store
+.DS_Store
+
+# Data files
+*.dat
+
+# Byte-compiled / optimized / DLL files
+__pycache__/

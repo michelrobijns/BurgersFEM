@@ -11,7 +11,7 @@
 #include "Burgers_model.h"
 #include "element.h"
 #include "linear_element.h"
-#include "linear_algebra.h"
+#include "tridiagonal_matrix.h"
 
 using std::cout;
 using std::endl;
@@ -25,13 +25,23 @@ BurgersModel::BurgersModel(unsigned number_of_elements,
                            unsigned polynomial_order,
                            double nu,
                            vector<double> nodes,
+                           bool periodic_domain,
                            double time,
+                           function<double(double, double)> forcing_function,
+                           function<double(double)> initial_condition,
+                           function<double(double)> left_boundary_value,
+                           function<double(double)> right_boundary_value,
                            bool verbose)
     : number_of_elements(number_of_elements)
     , polynomial_order(polynomial_order)
     , nu(nu)
     , nodes(nodes)
+    , periodic_domain(periodic_domain)
     , time(time)
+    , forcing_function(forcing_function)
+    , initial_condition(initial_condition)
+    , left_boundary_value(left_boundary_value)
+    , right_boundary_value(right_boundary_value)
     , verbose(verbose)
     , number_of_nodes(nodes.size())
     , nodes_per_element(polynomial_order + 1)
@@ -47,25 +57,25 @@ BurgersModel::BurgersModel(unsigned number_of_elements,
     //omp_set_num_threads(1);
 }
 
-double BurgersModel::forcing_function(double x, double t)
-{
-    return 1.0;
-}
+// double BurgersModel::forcing_function(double x, double t)
+// {
+//     return 0.0;
+// }
 
-double BurgersModel::initial_condition(double x)
-{
-    return 1.0;
-}
+// double BurgersModel::initial_condition(double x)
+// {
+//     return 1.0 + sin(2 * M_PI * x - 1.0);
+// }
 
-double BurgersModel::left_boundary_value(double t)
-{
-    return 1.0;
-}
+// double BurgersModel::left_boundary_value(double t)
+// {
+//     return 0.0;
+// }
 
-double BurgersModel::right_boundary_value(double t)
-{
-    return 1.0;
-}
+// double BurgersModel::right_boundary_value(double t)
+// {
+//     return 0.0;
+// }
 
 void BurgersModel::create_elements(unsigned number_of_elements)
 {
@@ -98,9 +108,11 @@ void BurgersModel::advance_in_time(double new_time)
     // Make a copy of `coefficients' for the computation of du_dt
     previous_coefficients = coefficients;
 
-    // Set boundary conditions
-    coefficients.front() = left_boundary_value(time);
-    coefficients.back() = right_boundary_value(time);
+    if (!periodic_domain) {
+        // Set boundary conditions
+        coefficients.front() = left_boundary_value(time);
+        coefficients.back() = right_boundary_value(time);
+    }
 
     // Perform Newton iterations
     for (unsigned i = 0; i != 20; ++i) {
@@ -108,12 +120,16 @@ void BurgersModel::advance_in_time(double new_time)
         assemble_F();
         assemble_J();
 
-        // Modify the system to enforce the boundary conditions
-        constrain_system(J, F);
-
         // Solve system
-        //J.solve_and_add_result_to_vector(F, coefficients);
-        J.solve(F); // Stores result in `F'
+        if (periodic_domain) {
+            J.solve_cyclic(F);
+        } else {
+            // Modify the system to enforce the boundary conditions
+            constrain_system(J, F);
+
+            J.solve(F); // Stores result in `F'
+        }
+
         dxpy(F, coefficients); // Stores result in `coefficients'
 
         // Compute the 2-norm of `F'
@@ -272,11 +288,16 @@ void BurgersModel::project_initial_condition()
     // Assemble the mass matrix `M'
     assemble_M(M);
 
-    // Apply boundary conditions
-    apply_boundary_conditions(M, b, left_boundary_value(nodes.front()), right_boundary_value(nodes.back()));
+    if (periodic_domain) {
+        // Solve system
+        M.solve_cyclic(b);
+    } else {
+        // Apply boundary conditions
+        apply_boundary_conditions(M, b, left_boundary_value(nodes.front()), right_boundary_value(nodes.back()));
 
-    // Solve system
-    M.solve(b);
+        // Solve system
+        M.solve(b);
+    }
 
     // Set `coefficients' to `b'
     //coefficients = b;

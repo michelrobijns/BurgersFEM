@@ -11,7 +11,7 @@ element.o: element.cpp element.h
 
 linear_element.o: linear_element.cpp linear_element.h
 
-linear_algebra.o: linear_algebra.cpp linear_algebra.h
+tridiagonal_matrix.o: tridiagonal_matrix.cpp tridiagonal_matrix.h
 	$(CXX) $(CXXFLAGS) -framework Accelerate -flax-vector-conversions -c -o $@ $<
 
 utilities.o: utilities.cpp utilities.h
@@ -19,7 +19,7 @@ utilities.o: utilities.cpp utilities.h
 Burgers_model.o: Burgers_model.cpp Burgers_model.h
 	$(CXX) $(CXXFLAGS) -fopenmp -c -o $@ $<
 
-main: main.o basis_functions.o element.o linear_element.o linear_algebra.o utilities.o Burgers_model.o
+main: main.o basis_functions.o element.o linear_element.o tridiagonal_matrix.o utilities.o Burgers_model.o
 	$(CXX) $(CXXFLAGS) -framework Accelerate -flax-vector-conversions -fopenmp -o $@ $^
 
 clean:

@@ -7,7 +7,7 @@
 
 #include "element.h"
 #include "linear_element.h"
-#include "linear_algebra.h"
+#include "tridiagonal_matrix.h"
 
 class BurgersModel {
 public:
@@ -16,18 +16,15 @@ public:
                  unsigned,
                  double,
                  std::vector<double>,
+                 bool,
                  double,
+                 std::function<double(double, double)>,
+                 std::function<double(double)>,
+                 std::function<double(double)>,
+                 std::function<double(double)>,
                  bool=true);
 
     // Member functions
-
-    static inline double forcing_function(double x, double t);
-
-    static inline double initial_condition(double x);
-
-    static inline double left_boundary_value(double t);
-
-    static inline double right_boundary_value(double t);
 
     void create_elements(unsigned);
 
@@ -61,7 +58,12 @@ public:
     unsigned number_of_elements, polynomial_order;
     double nu;
     std::vector<double> nodes;
+    bool periodic_domain;
     double time;
+    std::function<double(double, double)> forcing_function;
+    std::function<double(double)> initial_condition;
+    std::function<double(double)> left_boundary_value;
+    std::function<double(double)> right_boundary_value;
     bool verbose;
     unsigned number_of_nodes, nodes_per_element;
     std::vector<double> F;

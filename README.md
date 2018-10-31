@@ -10,7 +10,7 @@ This is a C++ implementation of a finite element method (FEM) solver for Burgers
 * Uses piecewise-linear basis functions
 * Uses the backward Euler method (or implicit Euler method) to advance the solution through time
 * Uses Newton's method to solve the system of nonlinear equations
-* Supports Dirichlet boundary conditions
+* Supports Dirichlet boundary conditions and periodic boundary conditions
 * Supports uniformly spaced meshes
 
 ## Dependencies

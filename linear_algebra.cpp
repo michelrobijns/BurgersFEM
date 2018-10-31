@@ -61,6 +61,37 @@ void TridiagonalMatrix::solve(vector<double>& d)
     //        & *data[0].begin(), & *d.begin(), &dim, &info);
 }
 
+void TridiagonalMatrix::solve_cyclic(vector<double>& d, double alpha, double beta)
+{
+    vector<double> u(dimension, 0.0);
+    vector<double> v(dimension, 0.0);
+
+    double gamma = -data[1][0];
+
+    u.front() = gamma;
+    u.back() = alpha;
+
+    v.front() = 1.0;
+    v.back() = beta / gamma;
+
+    vector<double> data_copy = data;
+    solve(d);
+    vector<double> y = d;
+
+    data = data_copy;
+    solve(u);
+    vector<double> z = u;
+
+    double v_dot_y = v.front() * y.front() + v.back() * y.back()
+    double v_dot_z = v.front() * z.front() + v.back() * z.back()
+
+    double factor = -1.0 * v_dot_y / (1.0 + v_dot_z);
+
+    vector<double> x = z;
+
+    cblas_daxpy(x.size(), factor, & *x.begin(), 1.0, & *y.begin(), 1.0);
+}
+
 void TridiagonalMatrix::solve_and_add_result_to_vector(vector<double>& d,
     vector<double>& result)
 {

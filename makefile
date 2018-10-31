@@ -3,7 +3,7 @@ CC = g++
 
 CXXFLAGS = -O3 -flto -Wall
 
-all: main
+all: main mms_Dirichlet
 
 basis_functions.o: basis_functions.cpp basis_functions.h
 
@@ -22,5 +22,8 @@ Burgers_model.o: Burgers_model.cpp Burgers_model.h
 main: main.o basis_functions.o element.o linear_element.o tridiagonal_matrix.o utilities.o Burgers_model.o
 	$(CXX) $(CXXFLAGS) -framework Accelerate -flax-vector-conversions -fopenmp -o $@ $^
 
+mms_Dirichlet: mms_Dirichlet.o basis_functions.o element.o linear_element.o tridiagonal_matrix.o utilities.o Burgers_model.o
+	$(CXX) $(CXXFLAGS) -framework Accelerate -flax-vector-conversions -fopenmp -o $@ $^
+
 clean:
-	rm -f *.o *.dat main
+	rm -f *.o *.dat main mms_Dirichlet

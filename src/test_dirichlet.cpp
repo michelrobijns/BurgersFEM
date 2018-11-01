@@ -1,8 +1,9 @@
 #include <vector> // std::vector
 #include <cmath> // sqrt(), sin(), M_PI
+#include <iostream>
 
 #include "Burgers_model.h"
-#include "utilities.h"
+#include "utilities/utilities.h"
 
 
 double u_e(double x, double t)
@@ -59,6 +60,8 @@ double right_boundary_value(double t)
 
 int main()
 {
+    std::cout << "Hello, World!" << std::endl;
+
     // Declare parameters
     unsigned number_of_elements = 4096;
     unsigned polynomial_order   = 1;
@@ -105,10 +108,10 @@ int main()
         u_exact[i] = u_e(x, t[i]);
     }
 
-    save_vector(t, "t.dat");
-    save_vector(x, "x.dat");
-    save_matrix(u, "u.dat");
-    save_matrix(u_exact, "u_e.dat");
+    save_vector(t, "test_data/t.dat");
+    save_vector(x, "test_data/x.dat");
+    save_matrix(u, "test_data/u.dat");
+    save_matrix(u_exact, "test_data/u_e.dat");
 
     return 0;
 }

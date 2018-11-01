@@ -9,9 +9,9 @@
 #include <memory> // std::unique_ptr
 
 #include "Burgers_model.h"
-#include "element.h"
-#include "linear_element.h"
-#include "tridiagonal_matrix.h"
+#include "elements/element.h"
+#include "elements/linear_element.h"
+#include "linear_algebra/tridiagonal_matrix.h"
 
 using std::cout;
 using std::endl;

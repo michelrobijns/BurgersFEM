@@ -9,7 +9,6 @@
 #include <string>
 
 #include "tridiagonal_matrix.h"
-#include "utilities.h"
 
 using std::cout;
 using std::endl;

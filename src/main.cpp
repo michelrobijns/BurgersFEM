@@ -2,7 +2,7 @@
 #include <cmath> // sqrt(), sin(), M_PI
 
 #include "Burgers_model.h"
-#include "utilities.h"
+#include "utilities/utilities.h"
 
 double forcing_function(double x, double t)
 {
@@ -69,9 +69,9 @@ int main()
         u[i] = model.interpolate(x);
     }
 
-    save_vector(t, "t.dat");
-    save_vector(x, "x.dat");
-    save_matrix(u, "u.dat");
+    save_vector(t, "data/t.dat");
+    save_vector(x, "data/x.dat");
+    save_matrix(u, "data/u.dat");
 
     return 0;
 }

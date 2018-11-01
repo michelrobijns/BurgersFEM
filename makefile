@@ -1,29 +1,27 @@
 CXX = g++
 CC = g++
 
-CXXFLAGS = -O3 -flto -Wall
+CXXFLAGS = -O3 -flto -Wall -flax-vector-conversions -fopenmp
 
-all: main mms_Dirichlet
+LDFLAGS = -framework Accelerate
 
-basis_functions.o: basis_functions.cpp basis_functions.h
+# cppsrc = $(wildcard src/*.cpp) \
+#          $(wildcard src/elements/*.cpp) \
+#          $(wildcard src/linear_algebra/*.cpp) \
+#          $(wildcard src/utilities/*.cpp)
 
-element.o: element.cpp element.h
+cppsrc = src/Burgers_model.cpp \
+         src/elements/basis_functions.cpp src/elements/element.cpp src/elements/linear_element.cpp \
+         src/linear_algebra/linear_algebra.cpp src/linear_algebra/tridiagonal_matrix.cpp \
+         src/utilities/utilities.cpp
 
-linear_element.o: linear_element.cpp linear_element.h
+obj = $(cppsrc:.cpp=.o)
 
-tridiagonal_matrix.o: tridiagonal_matrix.cpp tridiagonal_matrix.h
-	$(CXX) $(CXXFLAGS) -framework Accelerate -flax-vector-conversions -c -o $@ $<
+main: src/main.o $(obj)
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
-utilities.o: utilities.cpp utilities.h
-
-Burgers_model.o: Burgers_model.cpp Burgers_model.h
-	$(CXX) $(CXXFLAGS) -fopenmp -c -o $@ $<
-
-main: main.o basis_functions.o element.o linear_element.o tridiagonal_matrix.o utilities.o Burgers_model.o
-	$(CXX) $(CXXFLAGS) -framework Accelerate -flax-vector-conversions -fopenmp -o $@ $^
-
-mms_Dirichlet: mms_Dirichlet.o basis_functions.o element.o linear_element.o tridiagonal_matrix.o utilities.o Burgers_model.o
-	$(CXX) $(CXXFLAGS) -framework Accelerate -flax-vector-conversions -fopenmp -o $@ $^
+test_dirichlet: src/test_dirichlet.o $(obj)
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
 clean:
-	rm -f *.o *.dat main mms_Dirichlet
+	rm -f main test_dirichlet src/main.o src/test_dirichlet.o $(obj) data/*.dat test_data/*.dat

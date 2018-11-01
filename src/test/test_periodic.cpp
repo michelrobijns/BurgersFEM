@@ -4,6 +4,28 @@
 #include "../Burgers_model.h"
 #include "../utilities/utilities.h"
 
+/* This program uses the method of manufactured solutions to ensure that the
+ * implementation is correct.  We define the exact solution as:
+ *
+ * u(x, t) = sin(4 * pi * x - 20 * t)
+ *
+ * This is a problem with periodic boundary conditions on the domain x = [0, 1].
+ *
+ * We have:
+ *
+ * u_t(x, t) = -20 * cos(4 * pi * x - 20 * t)
+ *
+ * u_x(t, x) = 4 * pi * cos(4 * pi * x - 20 * t)
+ *
+ * u_xx(t, x) = -16 * pi^2 * sin(4 * pi * x - 20 * t)
+ *
+ * f(x, t) = u_t + u * u_x - nu * u_xx
+ * 
+ * Clearly, if the implementation is correct, then the numerical solution should
+ * be exceedingly close to the exact solution as the mesh spacing and time steps
+ * are decreased. 
+ */
+
 double u_e(double x, double t)
 {
     return sin(4.0 * M_PI * x - 20.0 * t);

@@ -8,6 +8,15 @@ Open a terminal and `cd` to the top-level directory, compile using `make`, run `
 
 Parameters like the mesh spacing and the time step are defined in `main.cpp`. The forcing function, initial condition, and boundary values are defined as functions inside `main.cpp`. In other words, to change the problem all you need to do is modify `main.cpp` and recompile.
 
+## Verification
+
+To verify the correctness of the implementation, two test problems (one with Dirichlet and one with periodic boundary conditions) are included for which the exact reference solutions are known:
+
+* `test_dirichlet.cpp` (compile with `make test_dirichlet`)
+* `test_periodic.cpp` (compile with `make test_periodic`)
+
+These test problems were generated using the method of manufactured solutions. After running the executables, solutions can be plotted by running `test_plot.sh`.
+
 ## Features
 
 * Solves Burgers' equation in 1D

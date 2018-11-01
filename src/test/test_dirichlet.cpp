@@ -1,9 +1,8 @@
 #include <vector> // std::vector
 #include <cmath> // sqrt(), sin(), M_PI
-#include <iostream>
 
-#include "Burgers_model.h"
-#include "utilities/utilities.h"
+#include "../Burgers_model.h"
+#include "../utilities/utilities.h"
 
 double u_e(double x, double t)
 {

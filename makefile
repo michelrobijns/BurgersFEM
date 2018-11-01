@@ -20,10 +20,10 @@ obj = $(cppsrc:.cpp=.o)
 main: src/main.o $(obj)
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
-test_dirichlet: src/test_dirichlet.o $(obj)
+test_dirichlet: src/test/test_dirichlet.o $(obj)
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
-test_periodic: src/test_periodic.o $(obj)
+test_periodic: src/test/test_periodic.o $(obj)
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
 clean:

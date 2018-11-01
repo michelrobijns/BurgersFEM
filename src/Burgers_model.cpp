@@ -207,8 +207,11 @@ void BurgersModel::assemble_J()
 {
     J.fill();
 
-    array<double, 3> weights = {5.0 / 9.0, 8.0 / 9.0, 5.0 / 9.0};
-    array<double, 3> integration_points = {-1.0 * sqrt(3.0 / 5.0), 0.0, sqrt(3.0 / 5.0)};
+    //array<double, 3> weights = {5.0 / 9.0, 8.0 / 9.0, 5.0 / 9.0};
+    //array<double, 3> integration_points = {-1.0 * sqrt(3.0 / 5.0), 0.0, sqrt(3.0 / 5.0)};
+
+    array<double, 1> weights = {2.0};
+    array<double, 1> integration_points = {0.0};
 
     double dt = time - previous_time;
 
@@ -223,7 +226,7 @@ void BurgersModel::assemble_J()
             for (unsigned j = 0; j != nodes_per_element; ++j) {
 
                 // Loop over integration points
-                for (unsigned ip = 0; ip != 3; ++ip) {
+                for (unsigned ip = 0; ip != 1; ++ip) {
 
                     double integration_point = integration_points[ip];
                     double x = element->x_left + 0.5 * (1 + integration_point) * element->width;

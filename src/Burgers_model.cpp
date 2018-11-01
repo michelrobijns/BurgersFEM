@@ -161,7 +161,7 @@ void BurgersModel::assemble_F()
     double dt = time - previous_time;
 
     // Loop over elements
-    #pragma omp parallel for
+    #pragma omp parallel for if (number_of_elements > 100)
     for (auto element = elements.begin(); element < elements.end(); ++element) {
 
         // Loop over the local nodes in `element'
@@ -195,6 +195,7 @@ void BurgersModel::assemble_F()
                 // Term 4
                 integrand += -1.0 * f * phi;
 
+                #pragma omp atomic
                 F[element->indices[i]] -= weights[ip] * 0.5 * element->width * integrand;
             }
         }
@@ -211,7 +212,7 @@ void BurgersModel::assemble_J()
     double dt = time - previous_time;
 
     // Loop over elements
-    #pragma omp parallel for
+    #pragma omp parallel for if (number_of_elements > 100)
     for (auto element = elements.begin(); element < elements.end(); ++element) {
 
         // Loop over the local nodes in `element'
@@ -244,6 +245,7 @@ void BurgersModel::assemble_J()
                     // Term 3
                     integrand += nu * d_phi_j * d_phi_i;
 
+                    #pragma omp atomic
                     J.element(element->indices[i], element->indices[j]) += weights[ip] * 0.5 * element->width * integrand;
                 }
             }

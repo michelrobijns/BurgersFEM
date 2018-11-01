@@ -136,7 +136,7 @@ void BurgersModel::advance_in_time(double new_time)
         double norm = sqrt(inner_product(F.begin(), F.end(), F.begin(), 0.0));
 
         // Check for convergence
-        if (norm < 1.0e-10) {
+        if (norm < 1.0e-12) {
             if (verbose) {
                 cout << "    Newton's method converged after " << i + 1 << " iterations." << endl;
             }

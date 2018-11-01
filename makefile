@@ -23,5 +23,8 @@ main: src/main.o $(obj)
 test_dirichlet: src/test_dirichlet.o $(obj)
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
+test_periodic: src/test_periodic.o $(obj)
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
+
 clean:
-	rm -f main test_dirichlet src/main.o src/test_dirichlet.o $(obj) data/*.dat test_data/*.dat
+	rm -f main test_dirichlet test_periodic src/main.o src/test_dirichlet.o src/test_periodic.o $(obj) data/*.dat test_data/*.dat

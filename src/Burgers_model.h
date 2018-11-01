@@ -2,8 +2,7 @@
 #define GUARD_Burgers_model_h
 
 #include <functional> // std::function
-#include <vector> // std::vector
-#include <memory> // std::unique_ptr
+#include <vector>     // std::vector
 
 #include "elements/element.h"
 #include "elements/linear_element.h"
@@ -12,46 +11,42 @@
 class BurgersModel {
 public:
     // Constructor
-    BurgersModel(unsigned,
-                 unsigned,
-                 double,
-                 std::vector<double>,
-                 bool,
-                 double,
-                 std::function<double(double, double)>,
-                 std::function<double(double)>,
-                 std::function<double(double)>,
-                 std::function<double(double)>,
+    BurgersModel(unsigned                              number_of_elements,
+                 unsigned                              polynomial_order,
+                 double                                nu,
+                 std::vector<double>                   nodes,
+                 bool                                  periodic_domain,
+                 double                                time,
+                 std::function<double(double, double)> forcing_function,
+                 std::function<double(double)>         initial_condition,
+                 std::function<double(double)>         left_boundary_value,
+                 std::function<double(double)>         right_boundary_value,
                  bool=true);
 
     // Member functions
 
-    void create_elements(unsigned);
+    void create_elements(unsigned number_of_elements);
 
-    void advance_in_time(double);
+    void advance_in_time(double new_time);
 
     void assemble_F();
 
     void assemble_J();
 
-    double residual(double, double, double, auto&, unsigned);
+    void constrain_system(TridiagonalMatrix& mat, std::vector<double>& vec);
 
-    double jacobian(double, double, double, auto&, unsigned, unsigned);
-
-    void constrain_system(TridiagonalMatrix&, std::vector<double>&);
-
-    void apply_boundary_conditions(TridiagonalMatrix&, std::vector<double>&,
-        double, double);
+    void apply_boundary_conditions(TridiagonalMatrix& mat, std::vector<double>& vec,
+        double value_left, double value_right);
 
     void project_initial_condition();
 
-    void assemble_b(std::vector<double>&);
+    void assemble_b(std::vector<double>& b);
 
-    void assemble_M(TridiagonalMatrix&);
+    void assemble_M(TridiagonalMatrix& M);
 
-    double interpolate(double);
+    double interpolate(double x);
 
-    std::vector<double> interpolate(std::vector<double>&);
+    std::vector<double> interpolate(std::vector<double>& x);
 
     // Data members
 

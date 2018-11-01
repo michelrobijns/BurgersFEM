@@ -12,6 +12,7 @@
 #include "elements/element.h"
 #include "elements/linear_element.h"
 #include "linear_algebra/tridiagonal_matrix.h"
+#include "utilities/utilities.h"
 
 using std::cout;
 using std::endl;
@@ -49,7 +50,7 @@ BurgersModel::BurgersModel(unsigned number_of_elements,
     , J(TridiagonalMatrix(number_of_nodes))
 {
     // Store `Element' objects in `elements'
-    create_elements(number_of_elements);
+    create_elements();
 
     project_initial_condition();
 
@@ -77,7 +78,7 @@ BurgersModel::BurgersModel(unsigned number_of_elements,
 //     return 0.0;
 // }
 
-void BurgersModel::create_elements(unsigned number_of_elements)
+void BurgersModel::create_elements()
 {
     for (unsigned i = 0; i != number_of_elements; ++i) {
 
@@ -315,7 +316,7 @@ void BurgersModel::assemble_b(vector<double>& b)
     array<double, 3> integration_points = {-1.0 * sqrt(3.0 / 5.0), 0.0, sqrt(3.0 / 5.0)};
 
     // Loop over elements
-    #pragma omp parallel for
+    #pragma omp parallel for if (number_of_elements > 100)
     for (auto element = elements.begin(); element < elements.end(); ++element) {
 
         // Loop over the local nodes in `element'
@@ -333,6 +334,7 @@ void BurgersModel::assemble_b(vector<double>& b)
 
                 double integrand = phi_i * f;
 
+                #pragma omp atomic
                 b[element->indices[i]] += weights[ip] * 0.5 * element->width * integrand;
             }
         }
@@ -347,7 +349,7 @@ void BurgersModel::assemble_M(TridiagonalMatrix& M)
     M.fill();
 
     // Loop over elements
-    #pragma omp parallel for
+    #pragma omp parallel for if (number_of_elements > 100)
     for (auto element = elements.begin(); element < elements.end(); ++element) {
 
         // Loop over the local nodes in `element'
@@ -368,6 +370,7 @@ void BurgersModel::assemble_M(TridiagonalMatrix& M)
 
                     double integrand = phi_i * phi_j;
 
+                    #pragma omp atomic
                     M.element(element->indices[i], element->indices[j]) += weights[ip] * 0.5 * element->width * integrand;
                 }
             }
@@ -398,4 +401,107 @@ vector<double> BurgersModel::interpolate(vector<double> &x)
     }
 
     return result;
+}
+
+vector<double> BurgersModel::project(unsigned N)
+{
+    // Build mesh
+
+    unsigned Nn = N + 1;
+
+    std::vector<LinearElement> coarse_mesh;
+    std::vector<double> x_nodes = linspace(nodes.front(), nodes.back(), Nn);
+
+    std::vector<double> c(Nn);
+    std::vector<double> prev_c(Nn);
+
+    for (unsigned i = 0; i != N; ++i) {
+
+        vector<double> local_x(2);
+        vector<unsigned> indices(2);
+
+        for (unsigned j = 0; j != 2; ++j) {
+            local_x[j] = x_nodes[i + j];
+            indices[j] = i + j;
+        }
+
+        coarse_mesh.push_back(LinearElement(i, local_x, indices, c, prev_c));
+    }
+
+    // Assemble `bb'
+
+    vector<double> bb(Nn, 0.0);
+
+    array<double, 3> weights = {5.0 / 9.0, 8.0 / 9.0, 5.0 / 9.0};
+    array<double, 3> integration_points = {-1.0 * sqrt(3.0 / 5.0), 0.0, sqrt(3.0 / 5.0)};
+
+    // Loop over elements
+    for (auto element = coarse_mesh.begin(); element < coarse_mesh.end(); ++element) {
+
+        // Loop over the local nodes in `element'
+        for (unsigned i = 0; i != 2; ++i) {
+
+            // Loop over integration points
+            for (unsigned ip = 0; ip != 3; ++ip) {
+
+                double integration_point = integration_points[ip];
+                double x = element->x_left + 0.5 * (1 + integration_point) * element->width;
+
+                // Evaluate at `x'
+                double phi_i = element->phi(x, i);
+                double f     = interpolate(x);
+
+                double integrand = phi_i * f;
+
+                bb[element->indices[i]] += weights[ip] * 0.5 * element->width * integrand;
+            }
+        }
+    }
+
+    // Assemble `MM'
+
+    TridiagonalMatrix MM(Nn);
+    MM.fill();
+
+    // Loop over elements
+    for (auto element = coarse_mesh.begin(); element < coarse_mesh.end(); ++element) {
+
+        // Loop over the local nodes in `element'
+        for (unsigned i = 0; i != 2; ++i) {
+
+            // Loop over the local nodes in `element' a second time
+            for (unsigned j = 0; j != 2; ++j) {
+
+                // Loop over integration points
+                for (unsigned ip = 0; ip != 3; ++ip) {
+
+                    double integration_point = integration_points[ip];
+                    double x = element->x_left + 0.5 * (1 + integration_point) * element->width;
+
+                    // Evaluate at `x'
+                    double phi_i = element->phi(x, i);
+                    double phi_j = element->phi(x, j);
+
+                    double integrand = phi_i * phi_j;
+
+                    MM.element(element->indices[i], element->indices[j]) += weights[ip] * 0.5 * element->width * integrand;
+                }
+            }
+        }
+    }
+
+    // Solve system
+
+    if (periodic_domain) {
+        // Solve system
+        MM.solve_cyclic(bb);
+    } else {
+        // Apply boundary conditions
+        apply_boundary_conditions(MM, bb, left_boundary_value(nodes.front()), right_boundary_value(nodes.back()));
+
+        // Solve system
+        MM.solve(bb);
+    }
+
+    return bb;
 }

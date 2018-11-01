@@ -30,6 +30,7 @@
 main
 test_dirichlet
 test_periodic
+dns
 *.exe
 *.out
 *.app

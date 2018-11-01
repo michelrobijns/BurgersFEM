@@ -25,7 +25,7 @@ public:
 
     // Member functions
 
-    void create_elements(unsigned number_of_elements);
+    void create_elements();
 
     void advance_in_time(double new_time);
 
@@ -47,6 +47,8 @@ public:
     double interpolate(double x);
 
     std::vector<double> interpolate(std::vector<double>& x);
+
+    std::vector<double> project(unsigned N);
 
     // Data members
 

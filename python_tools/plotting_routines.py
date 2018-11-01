@@ -76,29 +76,33 @@ def plot_with_slider(time, x, u, pad_factor=0.05):
     plt.show()
 
 
-def plot_2_with_slider(time, x, u, u_e, pad_factor=0.05):
+def plot_2_with_slider(time, x0, u0, x1, u1, label0="u0", label1="u1", pad_factor=0.05):
     fig, ax = plt.subplots()
     plt.subplots_adjust(bottom=0.2)
     fig.suptitle("t = {0:.3f}".format(time[0]))
 
-    if x.size < 50:
-        fmt = "-o"
+    if x0.size < 50:
+        fmt0 = "-o"
     else:
-        fmt = "-"
+        fmt0 = "--"
+
+    if x1.size < 50:
+        fmt1 = "-o"
+    else:
+        fmt1 = "-"
 
     # Plot the first entry of `u'
-    line0, = plt.plot(x, u[0, :], fmt, markerfacecolor='none', label="numerical")
-    line1, = plt.plot(x, u_e[0, :], "--", markerfacecolor='none', label="exact")
+    line0, = plt.plot(x0, u0[0, :], fmt0, markerfacecolor='none', label=label0)
+    line1, = plt.plot(x1, u1[0, :], fmt1, markerfacecolor='none', label=label1)
 
     plt.xlabel("x")
-    plt.ylabel("u")
     plt.legend(loc="best")
 
     # Setup limits
-    x_min = np.min(x)
-    x_max = np.max(x)
-    y_min = np.min(np.min(u))
-    y_max = np.max(np.max(u))
+    x_min = np.min([np.min(x0), np.min(x1)])
+    x_max = np.max([np.max(x0), np.max(x1)])
+    y_min = np.min([np.min(u0), np.min(u1)])
+    y_max = np.max([np.max(u0), np.max(u1)])
 
     x_pad = (x_max - x_min) * pad_factor
     y_pad = (y_max - y_min) * pad_factor
@@ -121,8 +125,8 @@ def plot_2_with_slider(time, x, u, u_e, pad_factor=0.05):
         timestep = int(round(slider.val))
 
         # Update lines
-        line0.set_ydata(u[timestep, :])
-        line1.set_ydata(u_e[timestep, :])
+        line0.set_ydata(u0[timestep, :])
+        line1.set_ydata(u1[timestep, :])
 
         # Update the timestamp in the title of the plot
         fig.suptitle("t = {0:.3f}".format(time[timestep]))

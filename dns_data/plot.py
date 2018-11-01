@@ -9,9 +9,10 @@ def main():
     t = np.loadtxt(sys.path[0] + "/t.dat")
     x = np.loadtxt(sys.path[0] + "/x.dat")
     u = np.loadtxt(sys.path[0] + "/u.dat")
-    u_e = np.loadtxt(sys.path[0] + "/u_e.dat")
+    x_proj = np.loadtxt(sys.path[0] + "/x_proj.dat")
+    u_proj = np.loadtxt(sys.path[0] + "/u_proj.dat")
 
-    plot_2_with_slider(t, x, u, x, u_e, "numerical", "exact")
+    plot_2_with_slider(t, x, u, x_proj, u_proj, "u", "P(u)")
 
 
 if __name__ == "__main__":

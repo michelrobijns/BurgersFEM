@@ -1,23 +1,26 @@
 # Solving Burgers' Equation in 1D using the Finite Element Method
 
-Work in progress!
-
 This is a C++ implementation of a finite element method (FEM) solver for Burgers' equation in 1D. There also a [version of this program in Python 3](https://github.com/michelrobijns/pyBurgersFEM).
+
+## Usage
+
+Open a terminal and `cd` to the top-level directory, compile using `make`, run `main` and then run `plot.sh` to plot the solution.
+
+Parameters like the mesh spacing and the time step are defined in `main.cpp`. The forcing function, initial condition, and boundary values are defined as functions inside `main.cpp`. In other words, to change the problem all you need to do is modify `main.cpp` and recompile.
 
 ## Features
 
 * Solves Burgers' equation in 1D
 * Uses piecewise-linear basis functions
-* Uses the backward Euler method (or implicit Euler method) to advance the solution through time
+* Uses the backward Euler method to advance the solution through time
 * Uses Newton's method to solve the system of nonlinear equations
 * Supports Dirichlet boundary conditions and periodic boundary conditions
-* Supports uniformly spaced meshes
+* Supports uniformly and nonuniformly spaced meshes
+* All linear system solves are of O(n)
+* Assembly of the residual and the Jacobian is parallelized using OpenMP
 
 ## Dependencies
 
-* Apple Accelerate framework (yes, the code only compiles on macOS for now...)
+* Apple Accelerate framework (yes, the code will only compile on macOS for now...)
 * OpenMP (comes with most compilers, so not really a dependency)
-
-## Usage
-
-Compile using `make`, run `main` and then `plot.sh` to plot the solution.
+* Python 3 with matplotlib to plot the solution

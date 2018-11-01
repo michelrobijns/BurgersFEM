@@ -28,6 +28,8 @@
 
 # Executables
 main
+test_dirichlet
+test_periodic
 *.exe
 *.out
 *.app

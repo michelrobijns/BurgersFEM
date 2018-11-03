@@ -8,9 +8,7 @@
 
 double forcing_function(double x, double t)
 {
-    return sin(1.0 * M_PI * x) * sin(1.0 * M_PI * t) +
-           sin(2.0 * M_PI * x) * sin(2.0 * M_PI * t) +
-           sin(3.0 * M_PI * x) * sin(3.0 * M_PI * t);
+    return 1.0;
 }
 
 double initial_condition(double x)
@@ -30,13 +28,18 @@ double right_boundary_value(double t)
 
 int main()
 {
+    //**************************************************************************
+    // Setup
+    //**************************************************************************
+
+
     // Declare parameters
     unsigned number_of_elements = 1024;
     unsigned polynomial_order   = 1;
     double nu                   = 0.01;
     double x_left               = 0.0;
     double x_right              = 1.0;
-    bool periodic_domain        = true;
+    bool periodic_domain        = false;
     double t_begin              = 0.0;
     double t_end                = 2.0;
     unsigned timesteps          = 2001;
@@ -45,8 +48,13 @@ int main()
     unsigned storage_nodes      = 256;
     unsigned skip_timesteps     = 10;
 
-    // Create a vector containing the x-coordinates of the nodes and the time
-    // steps
+
+    //**************************************************************************
+    // Initialize model
+    //**************************************************************************
+
+
+    // Define the x-coordinates of the nodes and the time steps
     unsigned number_of_nodes = number_of_elements * polynomial_order + 1;
     std::vector<double> nodes = linspace(x_left, x_right, number_of_nodes);
     std::vector<double> time = linspace(t_begin, t_end, timesteps);
@@ -64,18 +72,31 @@ int main()
                        right_boundary_value,
                        false);
 
-    // Setup storage for the results
+
+    //**************************************************************************
+    // Preallocate storage for the results
+    //**************************************************************************
+
+
+    // Solution
     unsigned storage_timesteps = (timesteps - 1) / skip_timesteps + 1;
 
     std::vector<double> t = linspace(t_begin, t_end, storage_timesteps);
     std::vector<double> x = linspace(x_left, x_right, storage_nodes);
     std::vector<std::vector<double> > u(storage_timesteps, std::vector<double>(storage_nodes));
 
-    // Projector
+    // Projected solution
     std::vector<double> x_proj = linspace(x_left, x_right, 9);
     std::vector<std::vector<double> > u_proj(storage_timesteps, std::vector<double>(9));
 
+    // Initialize the projection model
     ProjectorModel projector_model(model, 8, x_proj, periodic_domain);
+
+
+    //**************************************************************************
+    // Simulation
+    //**************************************************************************
+
 
     // Store the present solution (the initial condition)
     u[0] = model.interpolate(x);
@@ -93,11 +114,19 @@ int main()
             u[j] = model.interpolate(x);
 
             projector_model.project();
-            u_proj[j++] = projector_model.u(x_proj);
+            u_proj[j] = projector_model.u(x_proj);
+
+            j++;
         }
     }
 
-    // Save results to file
+
+    //**************************************************************************
+    // Wrapping up
+    //**************************************************************************
+
+
+    // Save results
     save_vector(t, "dns_data/t.dat");
     save_vector(x, "dns_data/x.dat");
     save_matrix(u, "dns_data/u.dat");

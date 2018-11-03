@@ -1,11 +1,8 @@
-#include <iostream> // std::cout, std::endl
 #include <vector> // std::vector
-#include <array> // std::array
-#include <cmath> // sqrt()
-#include <omp.h>
-#include <algorithm>
+#include <algorithm> // std::fill, std::upper_bound
 
 #include "projector_model.h"
+#include "../utilities/legendre_rule.h"
 
 // Constructor
 ProjectorModel::ProjectorModel(BurgersModel& model,
@@ -21,8 +18,6 @@ ProjectorModel::ProjectorModel(BurgersModel& model,
     , A(TridiagonalMatrix(number_of_nodes))
 {
     create_elements();
-
-    assemble_A();
 }
 
 void ProjectorModel::create_elements()
@@ -64,10 +59,12 @@ void ProjectorModel::project()
 
 void ProjectorModel::assemble_b()
 {
-    std::fill(b.begin(), b.end(), 0.0);
+    unsigned num_int_pts = 3;
+    std::vector<double> int_weights;
+    std::vector<double> int_pts;
+    legendre_rule(num_int_pts, int_weights, int_pts);
 
-    std::array<double, 3> weights = {5.0 / 9.0, 8.0 / 9.0, 5.0 / 9.0};
-    std::array<double, 3> integration_points = {-1.0 * sqrt(3.0 / 5.0), 0.0, sqrt(3.0 / 5.0)};
+    std::fill(b.begin(), b.end(), 0.0);
 
     // Loop over elements
     for (auto element = elements.begin(); element < elements.end(); ++element) {
@@ -76,10 +73,10 @@ void ProjectorModel::assemble_b()
         for (unsigned i = 0; i != 2; ++i) {
 
             // Loop over integration points
-            for (unsigned ip = 0; ip != 3; ++ip) {
+            for (unsigned k = 0; k != num_int_pts; ++k) {
 
-                double integration_point = integration_points[ip];
-                double x = element->x_left + 0.5 * (1 + integration_point) * element->width;
+                double x_ip = int_pts[k];
+                double x = element->x_left + 0.5 * (1 + x_ip) * element->width;
 
                 // Evaluate at `x'
                 double phi_i = element->phi(x, i);
@@ -87,7 +84,8 @@ void ProjectorModel::assemble_b()
 
                 double integrand = phi_i * f;
 
-                b[element->indices[i]] += weights[ip] * 0.5 * element->width * integrand;
+                b[element->indices[i]] +=
+                    int_weights[k] * 0.5 * element->width * integrand;
             }
         }
     }
@@ -95,8 +93,10 @@ void ProjectorModel::assemble_b()
 
 void ProjectorModel::assemble_A()
 {
-    std::array<double, 3> weights = {5.0 / 9.0, 8.0 / 9.0, 5.0 / 9.0};
-    std::array<double, 3> integration_points = {-1.0 * sqrt(3.0 / 5.0), 0.0, sqrt(3.0 / 5.0)};
+    unsigned num_int_pts = 3;
+    std::vector<double> int_weights;
+    std::vector<double> int_pts;
+    legendre_rule(num_int_pts, int_weights, int_pts);
 
     A.fill();
 
@@ -110,10 +110,11 @@ void ProjectorModel::assemble_A()
             for (unsigned j = 0; j != 2; ++j) {
 
                 // Loop over integration points
-                for (unsigned ip = 0; ip != 3; ++ip) {
+                for (unsigned k = 0; k != num_int_pts; ++k) {
 
-                    double integration_point = integration_points[ip];
-                    double x = element->x_left + 0.5 * (1 + integration_point) * element->width;
+                    double x_ip = int_pts[k];
+                    double x = element->x_left +
+                        0.5 * (1 + x_ip) * element->width;
 
                     // Evaluate at `x'
                     double phi_i = element->phi(x, i);
@@ -121,7 +122,8 @@ void ProjectorModel::assemble_A()
 
                     double integrand = phi_i * phi_j;
 
-                    A.element(element->indices[i], element->indices[j]) += weights[ip] * 0.5 * element->width * integrand;
+                    A.element(element->indices[i], element->indices[j]) +=
+                        int_weights[k] * 0.5 * element->width * integrand;
                 }
             }
         }

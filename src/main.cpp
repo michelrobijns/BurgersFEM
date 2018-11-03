@@ -27,7 +27,7 @@ double right_boundary_value(double t)
 int main()
 {
     // Declare parameters
-    unsigned number_of_elements = 4096;
+    unsigned number_of_elements = 1024;
     unsigned polynomial_order   = 1;
     double nu                   = 0.01;
     double x_left               = 0.0;
@@ -35,11 +35,11 @@ int main()
     bool periodic_domain        = true;
     double t_begin              = 0.0;
     double t_end                = 1.50;
-    unsigned timesteps          = 1501;
+    unsigned timesteps          = 151;
 
     // Only store a subset of the solution
     unsigned storage_nodes      = 256;
-    unsigned skip_timesteps     = 10;
+    unsigned skip_timesteps     = 1;
 
     // Create a vector containing the x-coordinates of the nodes and the time
     // steps
@@ -58,7 +58,7 @@ int main()
                        initial_condition,
                        left_boundary_value,
                        right_boundary_value,
-                       true);
+                       false);
 
     // Setup storage for the results
     unsigned storage_timesteps = (timesteps - 1) / skip_timesteps + 1;

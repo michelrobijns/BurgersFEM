@@ -2,7 +2,6 @@
 #include <functional> // std::function
 #include <vector> // std::vector
 #include <array> // std::array
-#include <cmath> // sqrt()
 #include <numeric> // std::inner_product
 #include <omp.h>
 #include <algorithm>
@@ -13,6 +12,7 @@
 #include "elements/linear_element.h"
 #include "linear_algebra/tridiagonal_matrix.h"
 #include "utilities/utilities.h"
+#include "utilities/legendre_rule.h"
 
 using std::cout;
 using std::endl;
@@ -57,26 +57,6 @@ BurgersModel::BurgersModel(unsigned number_of_elements,
     // Set the number of OpenMP threads
     //omp_set_num_threads(1);
 }
-
-// double BurgersModel::forcing_function(double x, double t)
-// {
-//     return 0.0;
-// }
-
-// double BurgersModel::initial_condition(double x)
-// {
-//     return 1.0 + sin(2 * M_PI * x - 1.0);
-// }
-
-// double BurgersModel::left_boundary_value(double t)
-// {
-//     return 0.0;
-// }
-
-// double BurgersModel::right_boundary_value(double t)
-// {
-//     return 0.0;
-// }
 
 void BurgersModel::create_elements()
 {
@@ -154,10 +134,12 @@ void BurgersModel::advance_in_time(double new_time)
 
 void BurgersModel::assemble_F()
 {
-    std::fill(F.begin(), F.end(), 0.0);
+    unsigned num_int_pts = 3;
+    vector<double> int_weights;
+    vector<double> int_pts;
+    legendre_rule(num_int_pts, int_weights, int_pts);
 
-    array<double, 3> weights = {5.0 / 9.0, 8.0 / 9.0, 5.0 / 9.0};
-    array<double, 3> integration_points = {-1.0 * sqrt(3.0 / 5.0), 0.0, sqrt(3.0 / 5.0)};
+    std::fill(F.begin(), F.end(), 0.0);
 
     double dt = time - previous_time;
 
@@ -169,10 +151,10 @@ void BurgersModel::assemble_F()
         for (unsigned i = 0; i != nodes_per_element; ++i) {
 
             // Loop over integration points
-            for (unsigned ip = 0; ip != 3; ++ip) {
+            for (unsigned k = 0; k != num_int_pts; ++k) {
 
-                double integration_point = integration_points[ip];
-                double x = element->x_left + 0.5 * (1 + integration_point) * element->width;
+                double x_ip = int_pts[k];
+                double x = element->x_left + 0.5 * (1 + x_ip) * element->width;
 
                 // Evaluate at `x'
                 double u     = element->u(x);
@@ -197,7 +179,8 @@ void BurgersModel::assemble_F()
                 integrand += -1.0 * f * phi;
 
                 #pragma omp atomic
-                F[element->indices[i]] -= weights[ip] * 0.5 * element->width * integrand;
+                F[element->indices[i]] -=
+                    int_weights[k] * 0.5 * element->width * integrand;
             }
         }
     }
@@ -205,18 +188,17 @@ void BurgersModel::assemble_F()
 
 void BurgersModel::assemble_J()
 {
+    unsigned num_int_pts = 3;
+    vector<double> int_weights;
+    vector<double> int_pts;
+    legendre_rule(num_int_pts, int_weights, int_pts);
+
     J.fill();
-
-    //array<double, 3> weights = {5.0 / 9.0, 8.0 / 9.0, 5.0 / 9.0};
-    //array<double, 3> integration_points = {-1.0 * sqrt(3.0 / 5.0), 0.0, sqrt(3.0 / 5.0)};
-
-    array<double, 1> weights = {2.0};
-    array<double, 1> integration_points = {0.0};
 
     double dt = time - previous_time;
 
     // Loop over elements
-    #pragma omp parallel for if (number_of_elements > 100)
+    #pragma omp parallel for if (number_of_elements > 128)
     for (auto element = elements.begin(); element < elements.end(); ++element) {
 
         // Loop over the local nodes in `element'
@@ -226,10 +208,11 @@ void BurgersModel::assemble_J()
             for (unsigned j = 0; j != nodes_per_element; ++j) {
 
                 // Loop over integration points
-                for (unsigned ip = 0; ip != 1; ++ip) {
+                for (unsigned k = 0; k != num_int_pts; ++k) {
 
-                    double integration_point = integration_points[ip];
-                    double x = element->x_left + 0.5 * (1 + integration_point) * element->width;
+                    double x_ip = int_pts[k];
+                    double x = element->x_left +
+                        0.5 * (1 + x_ip) * element->width;
 
                     // Evaluate at `x'
                     double u       = element->u(x);
@@ -250,7 +233,8 @@ void BurgersModel::assemble_J()
                     integrand += nu * d_phi_j * d_phi_i;
 
                     #pragma omp atomic
-                    J.element(element->indices[i], element->indices[j]) += weights[ip] * 0.5 * element->width * integrand;
+                    J.element(element->indices[i], element->indices[j]) +=
+                        int_weights[k] * 0.5 * element->width * integrand;
                 }
             }
         }
@@ -310,26 +294,27 @@ void BurgersModel::project_initial_condition()
     coefficients.swap(b);
 }
 
-
 void BurgersModel::assemble_b(vector<double>& b)
 {
+    unsigned num_int_pts = 3;
+    vector<double> int_weights;
+    vector<double> int_pts;
+    legendre_rule(num_int_pts, int_weights, int_pts);
+
     std::fill(b.begin(), b.end(), 0.0);
 
-    array<double, 3> weights = {5.0 / 9.0, 8.0 / 9.0, 5.0 / 9.0};
-    array<double, 3> integration_points = {-1.0 * sqrt(3.0 / 5.0), 0.0, sqrt(3.0 / 5.0)};
-
     // Loop over elements
-    #pragma omp parallel for if (number_of_elements > 100)
+    #pragma omp parallel for if (number_of_elements > 128)
     for (auto element = elements.begin(); element < elements.end(); ++element) {
 
         // Loop over the local nodes in `element'
         for (unsigned i = 0; i != nodes_per_element; ++i) {
 
             // Loop over integration points
-            for (unsigned ip = 0; ip != 3; ++ip) {
+            for (unsigned k = 0; k != num_int_pts; ++k) {
 
-                double integration_point = integration_points[ip];
-                double x = element->x_left + 0.5 * (1 + integration_point) * element->width;
+                double x_ip = int_pts[k];
+                double x = element->x_left + 0.5 * (1 + x_ip) * element->width;
 
                 // Evaluate at `x'
                 double phi_i = element->phi(x, i);
@@ -338,7 +323,8 @@ void BurgersModel::assemble_b(vector<double>& b)
                 double integrand = phi_i * f;
 
                 #pragma omp atomic
-                b[element->indices[i]] += weights[ip] * 0.5 * element->width * integrand;
+                b[element->indices[i]] +=
+                    int_weights[k] * 0.5 * element->width * integrand;
             }
         }
     }
@@ -346,13 +332,15 @@ void BurgersModel::assemble_b(vector<double>& b)
 
 void BurgersModel::assemble_M(TridiagonalMatrix& M)
 {
-    array<double, 3> weights = {5.0 / 9.0, 8.0 / 9.0, 5.0 / 9.0};
-    array<double, 3> integration_points = {-1.0 * sqrt(3.0 / 5.0), 0.0, sqrt(3.0 / 5.0)};
+    unsigned num_int_pts = 3;
+    vector<double> int_weights;
+    vector<double> int_pts;
+    legendre_rule(num_int_pts, int_weights, int_pts);
 
     M.fill();
 
     // Loop over elements
-    #pragma omp parallel for if (number_of_elements > 100)
+    #pragma omp parallel for if (number_of_elements > 128)
     for (auto element = elements.begin(); element < elements.end(); ++element) {
 
         // Loop over the local nodes in `element'
@@ -362,10 +350,11 @@ void BurgersModel::assemble_M(TridiagonalMatrix& M)
             for (unsigned j = 0; j != nodes_per_element; ++j) {
 
                 // Loop over integration points
-                for (unsigned ip = 0; ip != 3; ++ip) {
+                for (unsigned k = 0; k != num_int_pts; ++k) {
 
-                    double integration_point = integration_points[ip];
-                    double x = element->x_left + 0.5 * (1 + integration_point) * element->width;
+                    double x_ip = int_pts[k];
+                    double x = element->x_left +
+                        0.5 * (1 + x_ip) * element->width;
 
                     // Evaluate at `x'
                     double phi_i = element->phi(x, i);
@@ -374,7 +363,8 @@ void BurgersModel::assemble_M(TridiagonalMatrix& M)
                     double integrand = phi_i * phi_j;
 
                     #pragma omp atomic
-                    M.element(element->indices[i], element->indices[j]) += weights[ip] * 0.5 * element->width * integrand;
+                    M.element(element->indices[i], element->indices[j]) +=
+                        int_weights[k] * 0.5 * element->width * integrand;
                 }
             }
         }

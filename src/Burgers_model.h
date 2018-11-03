@@ -48,8 +48,6 @@ public:
 
     std::vector<double> interpolate(std::vector<double>& x);
 
-    std::vector<double> project(unsigned N);
-
     // Data members
 
     unsigned number_of_elements, polynomial_order;

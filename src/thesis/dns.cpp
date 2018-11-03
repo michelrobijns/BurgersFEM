@@ -4,42 +4,46 @@
 #include "../Burgers_model.h"
 #include "../utilities/utilities.h"
 
+#include "projector_model.h"
+
 double forcing_function(double x, double t)
 {
-    return 0.0;
+    return sin(1.0 * M_PI * x) * sin(1.0 * M_PI * t) +
+           sin(2.0 * M_PI * x) * sin(2.0 * M_PI * t) +
+           sin(3.0 * M_PI * x) * sin(3.0 * M_PI * t);
 }
 
 double initial_condition(double x)
 {
-    return 1.0 + sin(2 * M_PI * x - 1.0);
+    return 1.0;
 }
 
 double left_boundary_value(double t)
 {
-    return 0.0;
+    return 1.0;
 }
 
 double right_boundary_value(double t)
 {
-    return 0.0;
+    return 1.0;
 }
 
 int main()
 {
     // Declare parameters
-    unsigned number_of_elements = 4096;
+    unsigned number_of_elements = 1024;
     unsigned polynomial_order   = 1;
     double nu                   = 0.01;
     double x_left               = 0.0;
     double x_right              = 1.0;
     bool periodic_domain        = true;
     double t_begin              = 0.0;
-    double t_end                = 1.50;
-    unsigned timesteps          = 1501;
+    double t_end                = 25.0;
+    unsigned timesteps          = 5001;
 
     // Only store a subset of the solution
     unsigned storage_nodes      = 256;
-    unsigned skip_timesteps     = 10;
+    unsigned skip_timesteps     = 50;
 
     // Create a vector containing the x-coordinates of the nodes and the time
     // steps
@@ -67,12 +71,17 @@ int main()
     std::vector<double> x = linspace(x_left, x_right, storage_nodes);
     std::vector<std::vector<double> > u(storage_timesteps, std::vector<double>(storage_nodes));
 
+    // Projector
     std::vector<double> x_proj = linspace(x_left, x_right, 9);
     std::vector<std::vector<double> > u_proj(storage_timesteps, std::vector<double>(9));
 
+    ProjectorModel projector_model(model, 8, x_proj, periodic_domain);
+
     // Store the present solution (the initial condition)
     u[0] = model.interpolate(x);
-    u_proj[0] = model.project(8);
+
+    projector_model.project();
+    u_proj[0] = projector_model.u(x_proj);
 
     // Propagate through time and store the solutions
     unsigned j = 1;
@@ -82,7 +91,9 @@ int main()
 
         if (i % skip_timesteps == 0) {
             u[j] = model.interpolate(x);
-            u_proj[j++] = model.project(8);
+
+            projector_model.project();
+            u_proj[j++] = projector_model.u(x_proj);
         }
     }
 

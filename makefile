@@ -2,6 +2,7 @@ CXX = g++
 CC = g++
 
 CXXFLAGS = -O3 -flto -Wall -flax-vector-conversions -fopenmp
+#CXXFLAGS = -g -flax-vector-conversions -fopenmp
 
 LDFLAGS = -framework Accelerate
 
@@ -26,14 +27,14 @@ test_dirichlet: src/test/test_dirichlet.o $(obj)
 test_periodic: src/test/test_periodic.o $(obj)
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
-dns: src/thesis/dns.o $(obj)
+dns: src/thesis/dns.o src/thesis/projector_model.o $(obj)
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
 clean:
 	rm -f main src/main.o \
 	      test_dirichlet src/test_dirichlet.o \
 	      test_periodic src/test_periodic.o \
-	      dns src/thesis/dns.o \
+	      dns src/thesis/dns.o src/thesis/projector_model.o \
 	      $(obj) \
 	      data/*.dat \
 	      test_data/*.dat \

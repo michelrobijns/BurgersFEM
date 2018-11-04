@@ -105,7 +105,7 @@ void save_vector(std::vector<double> vec, string filename)
 
     streamsize prec = outfile.precision();
 
-    outfile << setprecision(10) << std::scientific;
+    outfile << setprecision(14) << std::scientific;
 
     for (unsigned i = 0; i != vec.size(); i++) {
         outfile << vec[i] << endl;
@@ -121,7 +121,7 @@ void save_matrix(std::vector<std::vector<double> > mat, string filename, string 
 
     streamsize prec = outfile.precision();
 
-    outfile << setprecision(10) << std::scientific;
+    outfile << setprecision(14) << std::scientific;
 
     for (unsigned i = 0; i != mat.size(); i++) {
         for (unsigned j = 0; j != mat[i].size() - 1; j++) {

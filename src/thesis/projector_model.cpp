@@ -7,12 +7,10 @@
 // Constructor
 ProjectorModel::ProjectorModel(BurgersModel& model,
                                unsigned number_of_elements,
-                               std::vector<double> nodes,
-                               bool periodic_domain)
+                               std::vector<double> nodes)
     : model(model)
     , number_of_elements(number_of_elements)
     , nodes(nodes)
-    , periodic_domain(periodic_domain)
     , number_of_nodes(number_of_elements + 1)
     , b(std::vector<double>(number_of_nodes))
     , A(TridiagonalMatrix(number_of_nodes))
@@ -42,11 +40,11 @@ void ProjectorModel::project()
 
     assemble_A();
 
-    if (periodic_domain) {
+    if (model.periodic_domain) {
         A.solve_cyclic(b);
     } else {
-        apply_boundary_conditions(A, b, model.interpolate(nodes.front()),
-            model.interpolate(nodes.back()));
+        apply_boundary_conditions(A, b, model.u(nodes.front()),
+            model.u(nodes.back()));
 
         A.solve(b);
     }
@@ -80,7 +78,7 @@ void ProjectorModel::assemble_b()
 
                 // Evaluate at `x'
                 double phi_i = element->phi(x, i);
-                double f     = model.interpolate(x);
+                double f     = model.u(x);
 
                 double integrand = phi_i * f;
 
@@ -130,7 +128,7 @@ void ProjectorModel::assemble_A()
     }
 }
 
-double ProjectorModel::u(double x)
+double ProjectorModel::u_proj(double x)
 {
     if (x < nodes.front() || x > nodes.back()) {
         return 0.0;
@@ -144,12 +142,12 @@ double ProjectorModel::u(double x)
     }
 }
 
-std::vector<double> ProjectorModel::u(std::vector<double> &x)
+std::vector<double> ProjectorModel::u_proj(std::vector<double> &x)
 {
     std::vector<double> result(x.size());
 
     for (unsigned i = 0; i < x.size(); ++i) {
-        result[i] = u(x[i]);
+        result[i] = u_proj(x[i]);
     }
 
     return result;

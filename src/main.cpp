@@ -68,7 +68,7 @@ int main()
     std::vector<std::vector<double> > u_storage(storage_timesteps, std::vector<double>(storage_nodes));
 
     // Store the present solution (the initial condition)
-    u_storage[0] = model.interpolate(x_storage);
+    u_storage[0] = model.u(x_storage);
 
     // Propagate through time and store the solutions
     unsigned j = 1;
@@ -77,7 +77,7 @@ int main()
         model.advance_in_time(t[i]);
 
         if (i % skip_timesteps == 0) {
-            u_storage[j++] = model.interpolate(x_storage);
+            u_storage[j++] = model.u(x_storage);
         }
     }
 

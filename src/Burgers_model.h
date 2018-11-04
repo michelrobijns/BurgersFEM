@@ -44,9 +44,9 @@ public:
 
     void assemble_M(TridiagonalMatrix& M);
 
-    double interpolate(double x);
+    double u(double x);
 
-    std::vector<double> interpolate(std::vector<double>& x);
+    std::vector<double> u(std::vector<double>& x);
 
     // Data members
 

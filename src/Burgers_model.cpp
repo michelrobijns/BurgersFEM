@@ -371,7 +371,7 @@ void BurgersModel::assemble_M(TridiagonalMatrix& M)
     }
 }
 
-double BurgersModel::interpolate(double x)
+double BurgersModel::u(double x)
 {
     if (x < nodes.front() || x > nodes.back()) {
         return 0.0;
@@ -385,12 +385,12 @@ double BurgersModel::interpolate(double x)
     }
 }
 
-vector<double> BurgersModel::interpolate(vector<double> &x)
+vector<double> BurgersModel::u(vector<double> &x)
 {
     vector<double> result(x.size());
 
     for (unsigned i = 0; i < x.size(); ++i) {
-        result[i] = interpolate(x[i]);
+        result[i] = u(x[i]);
     }
 
     return result;

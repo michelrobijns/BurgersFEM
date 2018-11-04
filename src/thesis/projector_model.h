@@ -12,8 +12,7 @@ public:
     // Constructor
     ProjectorModel(BurgersModel& model,
                    unsigned number_of_elements,
-                   std::vector<double> nodes,
-                   bool periodic_domain);
+                   std::vector<double> nodes);
 
     // Member functions
 
@@ -25,9 +24,9 @@ public:
 
     void assemble_A();
 
-    double u(double x);
+    double u_proj(double x);
 
-    std::vector<double> u(std::vector<double>& x);
+    std::vector<double> u_proj(std::vector<double>& x);
 
     void apply_boundary_conditions(TridiagonalMatrix& matrix,
         std::vector<double>& vector, double left_boundary_value,
@@ -38,7 +37,6 @@ public:
     BurgersModel& model;
     unsigned number_of_elements;
     std::vector<double> nodes;
-    bool periodic_domain;
 
     unsigned number_of_nodes;
     std::vector<double> b;

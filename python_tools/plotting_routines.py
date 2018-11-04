@@ -167,6 +167,7 @@ def plot_3_with_slider(time, x0, u0, x1, u1, x2, u2, label0="u0", label1="u1", l
 
     plt.xlabel("x")
     plt.legend(loc="best")
+    plt.grid(True)
 
     # Setup limits
     x_min = np.min([np.min(x0), np.min(x1), np.min(x2)])

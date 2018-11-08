@@ -42,8 +42,7 @@ int main()
     unsigned N_proj         = 8;  // Number of element to project the solution onto
 
     // Parameters of the solution that is written to disk
-    unsigned N_write        = 256;
-    unsigned write_interval = 10;  // Number of timesteps between solution writes
+    unsigned N_write        = 1024;
 
     // Define the x-coordinates of the nodes and the time steps
     std::vector<double> x = linspace(x_left, x_right, N + 1);
@@ -62,101 +61,68 @@ int main()
                        right_boundary_value,
                        false);
 
-    // Solution
-    unsigned write_timesteps = (timesteps - 1) / write_interval + 1;
+    // Storage
+    std::vector<double> t_write = linspace(t_begin, t_end,   timesteps);
+    std::vector<double> x_write = linspace(x_left,  x_right, N_write + 1);
+    std::vector<double> x_proj  = linspace(x_left,  x_right, N_proj + 1);
 
-    std::vector<double> t_write = linspace(t_begin, t_end, write_timesteps);
-    std::vector<double> x_write = linspace(x_left, x_right, N_write + 1);
-
-    std::vector<std::vector<double>> u_write(write_timesteps,
-        std::vector<double>(N_write + 1));
-
-    // Projected (large-scale) solution
-    std::vector<double> x_proj = linspace(x_left, x_right, N_proj + 1);
-    std::vector<std::vector<double> > u_proj(write_timesteps,
-        std::vector<double>(N_proj + 1));
-
-    // Small-scale solution
-    std::vector<std::vector<double> > u_prime(write_timesteps,
-        std::vector<double>(N_write + 1));
-    std::vector<std::vector<double> > u_prime_t(write_timesteps,
-        std::vector<double>(N_write + 1));
+    std::vector<std::vector<double> > u        (timesteps, std::vector<double>(N_write + 1));
+    std::vector<std::vector<double> > u_proj   (timesteps, std::vector<double>(N_proj  + 1));
+    std::vector<std::vector<double> > u_prime  (timesteps, std::vector<double>(N_write + 1));
+    std::vector<std::vector<double> > u_prime_t(timesteps, std::vector<double>(N_write + 1));
 
     // Initialize the projection model
     ProjectorModel proj_model(model, N_proj, x_proj);
 
 
-
-
-
-
-    // Store the present solution (the initial condition)
-    u_write[0] = model.u(x_write);
+    // Compute and store the solution at t = 0
 
     proj_model.project();
 
-    u_proj[0] = proj_model.u_proj(x_proj);
+    for (unsigned j = 0; j < (N_write + 1); j++) {
+        double xj = x_write[j];
 
-    // Compute u_prime and u_prime_t
-    for (unsigned k = 0; k < (N_write + 1); k++) {
-        double xk = x_write[k];
+        double u_xj      = model.u(xj);
+        double u_proj_xj = proj_model.u_proj(xj);
 
-        u_prime[0][k]   = model.u(xk) - proj_model.u_proj(xk);
-        u_prime_t[0][k] = 0.0;
+        u[0][j]         = u_xj;
+        u_prime[0][j]   = u_xj - u_proj_xj;
+        u_prime_t[0][j] = 0.0;
     }
 
+    u_proj[0] = proj_model.u_proj(x_proj);
 
-
-
-
-
-    // Propagate through time and store the solutions
-    unsigned j = 1;
+    // Propagate through time and store the solutions at t > 0
 
     for (unsigned i = 1; i != timesteps; i++) {
         model.advance_in_time(t[i]);
 
-        if ((i + 1) % write_interval == 0) {
-            proj_model.project();
+        // Store solution
 
-            // Compute u_prime
-            for (unsigned k = 0; k < (N_write + 1); k++) {
-                double xk = x_write[k];
+        proj_model.project();
 
-                u_prime[j][k] = model.u(xk) - proj_model.u_proj(xk);
-            }
+        // Compute u' and u'_t
+
+        for (unsigned j = 0; j < (N_write + 1); j++) {
+            double xj = x_write[j];
+
+            double u_xj       = model.u(xj);
+            double u_proj_xj  = proj_model.u_proj(xj);
+
+            u[i][j]         = u_xj;
+            u_prime[i][j]   = u_xj - u_proj_xj;
+            u_prime_t[i][j] = (u_prime[i][j] - u_prime[i - 1][j]) /
+                              (t[i] - t[i - 1]);
         }
 
-
-
-        if (i % write_interval == 0) {
-            u_write[j] = model.u(x_write);
-
-            proj_model.project();
-
-            u_proj[j] = proj_model.u_proj(x_proj);
-
-            // Compute uprime and uprime_t
-            for (unsigned k = 0; k < (N_write + 1); k++) {
-                double xk = x_write[k];
-
-                double u_prime_temp = model.u(xk) - proj_model.u_proj(xk);
-
-                u_prime_t[j][k] = (u_prime_temp - u_prime[j][k]) /
-                                  (t[i] - t[i-1]);
-
-                u_prime[j][k] = u_prime_temp;
-            }
-
-            // Increment `j'
-            j++;
-        }
+        u_proj[i] = proj_model.u_proj(x_proj);
     }
 
     // Save results
+
     save_vector(t_write, "dns_data/t.dat");
     save_vector(x_write, "dns_data/x.dat");
-    save_matrix(u_write, "dns_data/u.dat");
+    save_matrix(u, "dns_data/u.dat");
     save_vector(x_proj, "dns_data/x_proj.dat");
     save_matrix(u_proj, "dns_data/u_proj.dat");
     save_matrix(u_prime, "dns_data/u_prime.dat");

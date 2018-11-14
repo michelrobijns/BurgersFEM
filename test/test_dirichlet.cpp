@@ -1,23 +1,23 @@
 #include <vector> // std::vector
 #include <cmath> // sqrt(), sin(), M_PI
 
-#include "../Burgers_model.h"
-#include "../utilities/utilities.h"
+#include "../src/Burgers_model.h"
+#include "../src/utilities/utilities.h"
 
 /* This program uses the method of manufactured solutions to ensure that the
  * implementation is correct.  We define the exact solution as:
  *
- * u(x, t) = sin(4 * pi * x - 20 * t)
+ * u(x, t) = sin(4 * pi * x) * sin(4 * pi * t)
  *
- * This is a problem with periodic boundary conditions on the domain x = [0, 1].
+ * This is a problem with homogeneous Dirichlet boundary conditions.
  *
  * We have:
  *
- * u_t(x, t) = -20 * cos(4 * pi * x - 20 * t)
+ * u_t(x, t) = 4 * pi * sin(4 * pi * x) * cos(4 * pi * t)
  *
- * u_x(t, x) = 4 * pi * cos(4 * pi * x - 20 * t)
+ * u_x(t, x) = 4 * pi * cos(4 * pi * x) * sin(4 * pi * t)
  *
- * u_xx(t, x) = -16 * pi^2 * sin(4 * pi * x - 20 * t)
+ * u_xx(t, x) = -16 * pi^2 * sin(4 * pi * x) * sin(4 * pi * t)
  *
  * f(x, t) = u_t + u * u_x - nu * u_xx
  * 
@@ -28,7 +28,7 @@
 
 double u_e(double x, double t)
 {
-    return sin(4.0 * M_PI * x - 20.0 * t);
+    return sin(4.0 * M_PI * x) * sin(4.0 * M_PI * t);
 }
 
 std::vector<double> u_e(std::vector<double> x, double t)
@@ -44,17 +44,17 @@ std::vector<double> u_e(std::vector<double> x, double t)
 
 double u_t(double x, double t)
 {
-    return -20.0 * cos(4.0 * M_PI * x - 20.0 * t);
+    return 4.0 * M_PI * sin(4.0 * M_PI * x) * cos(4.0 * M_PI * t);
 }
 
 double u_x(double x, double t)
 {
-    return 4.0 * M_PI * cos(4.0 * M_PI * x - 20.0 * t);
+    return 4.0 * M_PI * cos(4.0 * M_PI * x) * sin(4.0 * M_PI * t);
 }
 
 double u_xx(double x, double t)
 {
-    return -1.0 * 4.0 * M_PI * 4.0 * M_PI * sin(4.0 * M_PI * x - 20.0 * t);
+    return -1.0 * 4.0 * M_PI * 4.0 * M_PI * sin(4.0 * M_PI * x) * sin(4.0 * M_PI * t);
 }
 
 double forcing_function(double x, double t)
@@ -64,7 +64,7 @@ double forcing_function(double x, double t)
 
 double initial_condition(double x)
 {
-    return sin(4.0 * M_PI * x);
+    return 0.0;
 }
 
 double left_boundary_value(double t)
@@ -85,7 +85,7 @@ int main()
     double nu                   = 0.01;
     double x_left               = 0.0;
     double x_right              = 1.0;
-    bool periodic_domain        = true;
+    bool periodic_domain        = false;
     double t_begin              = 0.0;
     double t_end                = 1.0;
     unsigned timesteps          = 1001;

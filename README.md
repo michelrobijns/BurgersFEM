@@ -10,12 +10,9 @@ Parameters like the mesh spacing and the time step are defined in `main.cpp`. Th
 
 ## Verification
 
-To verify the correctness of the implementation, two test problems (one with Dirichlet and one with periodic boundary conditions) are included for which the exact reference solutions are known:
+To verify the correctness of the implementation, two test problems (one with Dirichlet and one with periodic boundary conditions) are included for which the exact reference solutions are known. These test problems were created using the method of manufactured solutions.
 
-* `test_dirichlet.cpp` (compile with `make test_dirichlet`)
-* `test_periodic.cpp` (compile with `make test_periodic`)
-
-These test problems were generated using the method of manufactured solutions. After running the executables, solutions can be plotted by running `test_plot.sh`.
+To run the tests, `cd` to `test`, and run the `run_tests.sh` bash script. The script will compile the tests, run them, and plot their solutions.
 
 ## Features
 

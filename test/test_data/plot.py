@@ -1,5 +1,5 @@
 import sys
-sys.path.append(sys.path[0] + "/..")
+sys.path.append(sys.path[0] + "/../..")
 
 import numpy as np
 from python_tools.plotting_routines import plot_2_with_slider

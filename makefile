@@ -18,24 +18,15 @@ cppsrc = src/Burgers_model.cpp \
 
 obj = $(cppsrc:.cpp=.o)
 
-main: src/main.o $(obj)
-	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
-
-test_dirichlet: src/test/test_dirichlet.o $(obj)
-	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
-
-test_periodic: src/test/test_periodic.o $(obj)
-	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
-
-dns: src/thesis/dns.o src/thesis/projector_model.o $(obj)
+main: main.o $(obj)
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
 clean:
 	rm -f main src/main.o \
-	      test_dirichlet src/test_dirichlet.o \
-	      test_periodic src/test_periodic.o \
-	      dns src/thesis/dns.o src/thesis/projector_model.o \
+	      test/test_dirichlet test/test_dirichlet.o \
+	      test/test_periodic test/test_periodic.o \
+	      thesis/dns thesis/dns.o thesis/projector_model.o \
 	      $(obj) \
 	      data/*.dat \
-	      test_data/*.dat \
-	      dns_data/*.dat
+	      test/test_data/*.dat \
+	      thesis/dns_data/*.dat

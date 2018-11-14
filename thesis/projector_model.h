@@ -3,9 +3,9 @@
 
 #include <vector> // std::vector
 
-#include "../elements/linear_element.h"
-#include "../linear_algebra/tridiagonal_matrix.h"
-#include "../Burgers_model.h"
+#include "../src/elements/linear_element.h"
+#include "../src/linear_algebra/tridiagonal_matrix.h"
+#include "../src/Burgers_model.h"
 
 class ProjectorModel {
 public:

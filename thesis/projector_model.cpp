@@ -2,7 +2,7 @@
 #include <algorithm> // std::fill, std::upper_bound
 
 #include "projector_model.h"
-#include "../utilities/legendre_rule.h"
+#include "../src/utilities/legendre_rule.h"
 
 // Constructor
 ProjectorModel::ProjectorModel(BurgersModel& model,

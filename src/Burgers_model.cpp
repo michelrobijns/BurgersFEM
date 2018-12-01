@@ -283,7 +283,7 @@ void BurgersModel::project_initial_condition()
         M.solve_cyclic(b);
     } else {
         // Apply boundary conditions
-        apply_boundary_conditions(M, b, left_boundary_value(nodes.front()), right_boundary_value(nodes.back()));
+        apply_boundary_conditions(M, b, left_boundary_value(time), right_boundary_value(time));
 
         // Solve system
         M.solve(b);

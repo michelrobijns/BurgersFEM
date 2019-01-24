@@ -130,6 +130,10 @@ void BurgersModel::advance_in_time(double new_time)
             cout << "    Newton's method FAILED to converge within " << i + 1 << " iterations." << endl;
         }
     }
+
+    if (verbose) {
+        cout << "    Energy = " << energy() << "." << endl;
+    }
 }
 
 void BurgersModel::assemble_F()
@@ -394,4 +398,36 @@ vector<double> BurgersModel::u(vector<double> &x)
     }
 
     return result;
+}
+
+double BurgersModel::energy()
+{
+    double energy = 0.0;
+
+    unsigned num_int_pts = 3;
+    vector<double> int_weights;
+    vector<double> int_pts;
+    legendre_rule(num_int_pts, int_weights, int_pts);
+
+    // Loop over elements
+    #pragma omp parallel for if (number_of_elements > 100)
+    for (auto element = elements.begin(); element < elements.end(); ++element) {
+
+        // Loop over integration points
+        for (unsigned k = 0; k != num_int_pts; ++k) {
+
+            double x_ip = int_pts[k];
+            double x = element->x_left + 0.5 * (1 + x_ip) * element->width;
+
+            // Evaluate at `x'
+            double u = element->u(x);
+
+            double integrand = u * u;
+
+            #pragma omp atomic
+            energy += int_weights[k] * 0.5 * element->width * integrand;
+        }
+    }
+
+    return energy;
 }

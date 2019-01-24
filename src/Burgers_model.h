@@ -48,6 +48,8 @@ public:
 
     std::vector<double> u(std::vector<double>& x);
 
+    double energy();
+
     // Data members
 
     unsigned number_of_elements, polynomial_order;

@@ -18,30 +18,32 @@ double forcing_function(double x, double t)
 
     //return (1.0 + 2.0 * sin(1.5 * 2.0 * M_PI * x) * cos(1.5 * 2.0 * M_PI * t)) * cos(0.3 * 2.0 * M_PI * t);
 
-    return 3.0 * sin(1.5 * 2.0 * M_PI * x) * cos(2.0 * M_PI * t);
+    //return 3.0 * sin(1.5 * 2.0 * M_PI * x) * cos(2.0 * M_PI * t);
 
-    //return 1.0;
+    return 20.0 * (x * x * x - x * x * x * x * x * x) * sin(2.0 * M_PI * t);
+
+    //return 1.0 + 1.5 * sin(2 * M_PI * t) * sin(2 * M_PI * x);
 }
 
 double initial_condition(double x)
 {
     return 1.0 + sin(2.0 * M_PI * x);
 
-    //return 1.0;
+    //return 0.0;
 }
 
 double left_boundary_value(double t)
 {
-    //return 1.0;
+    return 0.0;
 
-    return 1.0 + 0.75 * sin(0.2 * 2.0 * M_PI * t);
+    //return 1.0 + 0.75 * sin(0.2 * 2.0 * M_PI * t);
 }
 
 double right_boundary_value(double t)
 {
-    //return 1.0;
+    return 0.0;
 
-    return 1.0 - 0.75 * sin(0.2 * 2.0 * M_PI * t);
+    //return 1.0 - 0.75 * sin(0.2 * 2.0 * M_PI * t);
 }
 
 int main()
@@ -50,15 +52,15 @@ int main()
     double nu            = 0.01;
     double x_left        = 0.0;
     double x_right       = 1.0;
-    bool periodic_domain = false;
+    bool periodic_domain = true;
     double t_begin       = 0.0;
-    double t_end         = 5.0;
+    double t_end         = 2.0;
 
     // Discretization
     unsigned N           = 1024;  // Number of elements
-    unsigned timesteps   = 5001;
+    unsigned timesteps   = 2001;
     unsigned N_proj      = 8;  // Number of element to project the solution onto
-    unsigned proj_type   = 1;  // 1 for nodal projection, 2 for L2 projection
+    unsigned proj_type   = 2;  // 1 for nodal projection, 2 for L2 projection
 
     // Define the x-coordinates of the nodes and the time steps
     std::vector<double> t = linspace(t_begin, t_end, timesteps);

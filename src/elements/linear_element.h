@@ -14,6 +14,7 @@ public:
     double u(double) const;
     double previous_u(double) const;
     double d_u(double) const;
+    double previous_d_u(double) const;
 
     // Basis functions
     double phi(double, unsigned) const;

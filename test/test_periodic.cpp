@@ -88,11 +88,11 @@ int main()
     bool periodic_domain        = true;
     double t_begin              = 0.0;
     double t_end                = 1.0;
-    unsigned timesteps          = 1001;
+    unsigned timesteps          = 101;
 
     // Only store a subset of the solution
     unsigned storage_nodes      = 256;
-    unsigned skip_timesteps     = 10;
+    unsigned skip_timesteps     = 1;
 
     // Create a vector containing the x-coordinates of the nodes and the time
     // steps

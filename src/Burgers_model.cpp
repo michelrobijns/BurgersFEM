@@ -96,7 +96,7 @@ void BurgersModel::advance_in_time(double new_time)
     }
 
     // Perform Newton iterations
-    for (unsigned i = 0; i != 20; ++i) {
+    for (unsigned i = 0; i != 100; ++i) {
         // Assemble the residual vector `-F' and the Jacobian matrix `J'
         assemble_F();
         assemble_J();
@@ -126,14 +126,14 @@ void BurgersModel::advance_in_time(double new_time)
             break;
         }
 
-        if (i == 19 && verbose) {
+        if (i == 99 && verbose) {
             cout << "    Newton's method FAILED to converge within " << i + 1 << " iterations." << endl;
         }
     }
 
-    if (verbose) {
+    /*if (verbose) {
         cout << "    Energy = " << energy() << "." << endl;
-    }
+    }*/
 }
 
 void BurgersModel::assemble_F()
@@ -161,16 +161,20 @@ void BurgersModel::assemble_F()
                 double x = element->x_left + 0.5 * (1 + x_ip) * element->width;
 
                 // Evaluate at `x'
-                double u     = element->u(x);
-                double du_dt = (u - element->previous_u(x)) / dt;
-                double du_dx = element->d_u(x);
-                double phi   = element->phi(x, i);
-                double d_phi = element->d_phi(x, i);
-                double f     = forcing_function(x, time);
+                double u          = element->u(x);
+                double u_prev     = element->previous_u(x);
+                double du_dt      = (u - u_prev) / dt;
+                double du_dx      = element->d_u(x);
+                double du_dx_prev = element->previous_d_u(x);
+                double phi        = element->phi(x, i);
+                double d_phi      = element->d_phi(x, i);
+                double f          = forcing_function(x, time);
+                double f_prev     = forcing_function(x, previous_time);
 
                 double integrand = 0.0;
 
-                // Term 1
+                // Second-order timestep
+                /*// Term 1
                 integrand += du_dt * phi;
 
                 // Term 2
@@ -180,7 +184,29 @@ void BurgersModel::assemble_F()
                 integrand += nu * du_dx * d_phi;
 
                 // Term 4
-                integrand += -1.0 * f * phi;
+                integrand += -1.0 * f * phi;*/
+
+                // Third-order timestep
+                // Term 1
+                integrand += du_dt * phi;
+
+                // Term 2
+                integrand += -0.5 * u * u * d_phi * 0.5;
+
+                // Term 3
+                integrand += nu * du_dx * d_phi * 0.5;
+
+                // Term 4
+                integrand += -1.0 * f * phi * 0.5;
+
+                // Term 5
+                integrand += -0.5 * u_prev * u_prev * d_phi * 0.5;
+
+                // Term 6
+                integrand += nu * du_dx_prev * d_phi * 0.5;
+
+                // Term 7
+                integrand += -1.0 * f_prev * phi * 0.5;
 
                 #pragma omp atomic
                 F[element->indices[i]] -=

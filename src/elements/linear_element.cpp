@@ -23,6 +23,11 @@ double LinearElement::d_u(double x) const
     return coefficients[indices[0]] * d_phi(x, 0) + coefficients[indices[1]] * d_phi(x, 1);
 }
 
+double LinearElement::previous_d_u(double x) const
+{
+    return previous_coefficients[indices[0]] * d_phi(x, 0) + previous_coefficients[indices[1]] * d_phi(x, 1);
+}
+
 // Basis functions
 
 double LinearElement::phi(double x, unsigned i) const

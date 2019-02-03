@@ -6,22 +6,22 @@
 
 double forcing_function(double x, double t)
 {
-    return 0.0;
+    return 1.0;
 }
 
 double initial_condition(double x)
 {
-    return 1.0 + sin(2 * M_PI * x - 1.0);
+    return 1.0 + sin(2 * M_PI * x);
 }
 
 double left_boundary_value(double t)
 {
-    return 0.0;
+    return 1.0;
 }
 
 double right_boundary_value(double t)
 {
-    return 0.0;
+    return 1.0;
 }
 
 int main()
@@ -32,10 +32,10 @@ int main()
     double nu                   = 0.01;
     double x_left               = 0.0;
     double x_right              = 1.0;
-    bool periodic_domain        = true;
+    bool periodic_domain        = false;
     double t_begin              = 0.0;
-    double t_end                = 1.50;
-    unsigned timesteps          = 151;
+    double t_end                = 2.0;
+    unsigned timesteps          = 201;
 
     // Only store a subset of the solution
     unsigned storage_nodes      = 256;
@@ -58,7 +58,7 @@ int main()
                        initial_condition,
                        left_boundary_value,
                        right_boundary_value,
-                       false);
+                       true);
 
     // Setup storage for the results
     unsigned storage_timesteps = (timesteps - 1) / skip_timesteps + 1;
